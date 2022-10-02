@@ -1,30 +1,29 @@
 {
-  "translation_by": "nekomata#1136",
   "commands": {
     "login": {
       "NAME": "login",
-      "DESCRIPTION": "Log in with your Riot account",
+      "DESCRIPTION": "use this command to connect your riot account!",
       "DESCRIBE": {
-        "username": "Input username",
-        "password": "Input password"
+        "username": "enter username",
+        "password": "enter password"
       },
-      "SUCCESS": "Successfully logged in",
-      "FAILED": "Failed to log in, please try again"
+      "SUCCESS": "your account is good to go now! try /store",
+      "FAILED": "bruh you typed your shit in wrong, try again"
     },
     "logout": {
       "NAME": "logout",
-      "DESCRIPTION": "Log out and delete your account from database",
-      "SUCCESS": "Successfully logged out",
-      "FAILED": "Failed to log out, please try again"
+      "DESCRIPTION": "use this command to disconnect your riot account",
+      "SUCCESS": "successful... at being cringe. what you log out for bruh",
+      "FAILED": "ERROR"
     },
     "store": {
       "NAME": "store",
-      "DESCRIPTION": "Shows your daily store for your accounts",
+      "DESCRIPTION": "use this command to see your store!",
       "DESCRIBE": {
         "username": "Input username (temporary login)",
         "password": "Input password (temporary login)"
       },
-      "RESPONSE": "Daily store for **{username}** \nResets {duration}"
+      "RESPONSE": "Daily store for **{username}**"
     },
     "point": {
       "NAME": "point",
@@ -153,7 +152,7 @@
   "errors": {
     "UNKNOW_ERROR": "An unknown error occurred.",
     "AUTH": {
-      "INVALID_PASSWORD": "Your username or password may be incorrect.",
+      "INVALID_PASSWORD": "you typed yo shit in wrong lmao",
       "RATELIMIT": "Please wait a few minutes and try again.",
       "COOKIES_EXPIRED": "Cookies has expired, please `/login` again.",
       "NO_NAME_TAG": "This user hasn't created a name or tagline yet.",

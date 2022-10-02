@@ -80,7 +80,7 @@ class ValorantCog(commands.Cog, name='Valorant'):
         endpoint.activate(data)
         return endpoint
 
-    @app_commands.command(description='Log in with your Riot acoount')
+    @app_commands.command(description='use this command to connect your riot account')
     @app_commands.describe(username='Input username', password='Input password')
     # @dynamic_cooldown(cooldown_5s)
     async def login(self, interaction: Interaction, username: str, password: str) -> None:
@@ -97,7 +97,7 @@ class ValorantCog(commands.Cog, name='Valorant'):
             login = await self.db.login(user_id, authenticate, interaction.locale)
 
             if login['auth']:
-                embed = Embed(f"{response.get('SUCCESS')} **{login['player']}!**")
+                embed = Embed(f"{response.get('SUCCESS')}")
                 return await interaction.followup.send(embed=embed, ephemeral=True)
 
             raise ValorantBotError(f"{response.get('FAILED')}")
@@ -109,7 +109,7 @@ class ValorantCog(commands.Cog, name='Valorant'):
             modal = View.TwoFA_UI(interaction, self.db, cookies, message, label, response)
             await interaction.response.send_modal(modal)
 
-    @app_commands.command(description='Logout and Delete your account from database')
+    @app_commands.command(description='removes your account from database')
     # @dynamic_cooldown(cooldown_5s)
     async def logout(self, interaction: Interaction) -> None:
 
@@ -124,25 +124,22 @@ class ValorantCog(commands.Cog, name='Valorant'):
                 return await interaction.followup.send(embed=embed, ephemeral=True)
             raise ValorantBotError(response.get('FAILED'))
 
-    @app_commands.command(description="Shows your daily store in your accounts")
-    @app_commands.describe(username='Input username (without login)', password='password (without login)')
+    @app_commands.command(description="shows your store in your account")
     @app_commands.guild_only()
     # @dynamic_cooldown(cooldown_5s)
-    async def store(self, interaction: Interaction, username: str = None, password: str = None) -> None:
+    async def store(self, interaction: Interaction) -> None:
 
         # language
         response = ResponseLanguage(interaction.command.name, interaction.locale)
 
         # check if user is logged in
-        is_private_message = True if username is not None or password is not None else False
-
-        await interaction.response.defer(ephemeral=is_private_message)
+        await interaction.response.defer(ephemeral=False)
 
         # setup emoji
         await setup_emoji(self.bot, interaction.guild, interaction.locale)
 
         # get endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale, username, password)
+        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale)
 
         # fetch skin price
         skin_price = endpoint.store_fetch_offers()
@@ -152,238 +149,8 @@ class ValorantCog(commands.Cog, name='Valorant'):
         data = endpoint.store_fetch_storefront()
         embeds = GetEmbed.store(endpoint.player, data, response, self.bot)
         await interaction.followup.send(
-            embeds=embeds, view=View.share_button(interaction, embeds) if is_private_message else MISSING
+            embeds=embeds, view=MISSING
         )
-
-    @app_commands.command(description='View your remaining Valorant and Riot Points (VP/RP)')
-    @app_commands.guild_only()
-    # @dynamic_cooldown(cooldown_5s)
-    async def point(self, interaction: Interaction, username: str = None, password: str = None) -> None:
-
-        # check if user is logged in
-        is_private_message = True if username is not None or password is not None else False
-
-        await interaction.response.defer(ephemeral=is_private_message)
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # setup emoji
-        await setup_emoji(self.bot, interaction.guild, interaction.locale)
-
-        # endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, locale_code=interaction.locale)
-
-        # data
-        data = endpoint.store_fetch_wallet()
-        embed = GetEmbed.point(endpoint.player, data, response, self.bot)
-
-        await interaction.followup.send(
-            embed=embed, view=View.share_button(interaction, [embed]) if is_private_message else MISSING
-        )
-
-    @app_commands.command(description='View your daily/weekly mission progress')
-    # @dynamic_cooldown(cooldown_5s)
-    async def mission(self, interaction: Interaction, username: str = None, password: str = None) -> None:
-
-        # check if user is logged in
-        is_private_message = True if username is not None or password is not None else False
-
-        await interaction.response.defer(ephemeral=is_private_message)
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale, username, password)
-
-        # data
-        data = endpoint.fetch_contracts()
-        embed = GetEmbed.mission(endpoint.player, data, response)
-
-        await interaction.followup.send(
-            embed=embed, view=View.share_button(interaction, [embed]) if is_private_message else MISSING
-        )
-
-    @app_commands.command(description='Show skin offers on the nightmarket')
-    # @dynamic_cooldown(cooldown_5s)
-    async def nightmarket(self, interaction: Interaction, username: str = None, password: str = None) -> None:
-
-        # check if user is logged in
-        is_private_message = True if username is not None or password is not None else False
-
-        await interaction.response.defer(ephemeral=is_private_message)
-
-        # setup emoji
-        await setup_emoji(self.bot, interaction.guild, interaction.locale)
-
-        # language
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale, username, password)
-
-        # fetch skin price
-        skin_price = endpoint.store_fetch_offers()
-        self.db.insert_skin_price(skin_price)
-
-        # data
-        data = endpoint.store_fetch_storefront()
-        embeds = GetEmbed.nightmarket(endpoint.player, data, self.bot, response)
-
-        await interaction.followup.send(
-            embeds=embeds, view=View.share_button(interaction, embeds) if is_private_message else MISSING
-        )
-
-    @app_commands.command(description='View your battlepass current tier')
-    # @dynamic_cooldown(cooldown_5s)
-    async def battlepass(self, interaction: Interaction, username: str = None, password: str = None) -> None:
-
-        # check if user is logged in
-        is_private_message = True if username is not None or password is not None else False
-
-        await interaction.response.defer(ephemeral=is_private_message)
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale, username, password)
-
-        # data
-        data = endpoint.fetch_contracts()
-        content = endpoint.fetch_content()
-        season = useful.get_season_by_content(content)
-
-        embed = GetEmbed.battlepass(endpoint.player, data, season, response)
-
-        await interaction.followup.send(
-            embed=embed, view=View.share_button(interaction, [embed]) if is_private_message else MISSING
-        )
-
-    # inspired by https://github.com/giorgi-o
-    @app_commands.command(description="inspect a specific bundle")
-    @app_commands.describe(bundle="The name of the bundle you want to inspect!")
-    @app_commands.guild_only()
-    # @dynamic_cooldown(cooldown_5s)
-    async def bundle(self, interaction: Interaction, bundle: str) -> None:
-
-        await interaction.response.defer()
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # setup emoji
-        await setup_emoji(self.bot, interaction.guild, interaction.locale)
-
-        # cache
-        cache = self.db.read_cache()
-
-        # default language language
-        default_language = 'en-US'
-
-        # find bundle
-        find_bundle_en_US = [
-            cache['bundles'][i]
-            for i in cache['bundles']
-            if bundle.lower() in cache['bundles'][i]['names'][default_language].lower()
-        ]
-        find_bundle_locale = [
-            cache['bundles'][i]
-            for i in cache['bundles']
-            if bundle.lower() in cache['bundles'][i]['names'][str(VLR_locale)].lower()
-        ]
-        find_bundle = find_bundle_en_US if len(find_bundle_en_US) > 0 else find_bundle_locale
-
-        # bundle view
-        view = View.BaseBundle(interaction, find_bundle, response)
-        await view.start()
-
-    # inspired by https://github.com/giorgi-o
-    @app_commands.command(description="Show the current featured bundles")
-    # @dynamic_cooldown(cooldown_5s)
-    async def bundles(self, interaction: Interaction) -> None:
-
-        await interaction.response.defer()
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        # endpoint
-        endpoint = await self.get_endpoint(interaction.user.id, interaction.locale)
-
-        # data
-        bundle_entries = endpoint.store_fetch_storefront()
-
-        # bundle view
-        view = View.BaseBundle(interaction, bundle_entries, response)
-        await view.start_furture()
-
-    # credit https://github.com/giorgi-o
-    # https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies
-    @app_commands.command()
-    @app_commands.describe(cookie="Your cookie")
-    async def cookies(self, interaction: Interaction, cookie: str) -> None:
-        """Login to your account with a cookie"""
-
-        await interaction.response.defer(ephemeral=True)
-
-        # language
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        login = await self.db.cookie_login(interaction.user.id, cookie, interaction.locale)
-
-        if login['auth']:
-            embed = Embed(f"{response.get('SUCCESS')} **{login['player']}!**")
-            await interaction.followup.send(embed=embed, ephemeral=True)
-            return
-
-        view = ui.View()
-        view.add_item(ui.Button(label="Tutorial", emoji="🔗", url="https://youtu.be/cFMNHEHEp2A"))
-        await interaction.followup.send(f"{response.get('FAILURE')}", view=view, ephemeral=True)
-
-    # ---------- ROAD MAP ---------- #
-
-    # @app_commands.command()
-    # async def contract(self, interaction: Interaction) -> None:
-    #     # change agent contract
-
-    # @app_commands.command()
-    # async def party(self, interaction: Interaction) -> None:
-    #     # curren party
-    #     # pick agent
-    #     # current map
-
-    # @app_commands.command()
-    # async def career(self, interaction: Interaction) -> None:
-    #     # match history
-
-    # ---------- DEBUGs ---------- #
-
-    @app_commands.command(description='The command debug for the bot')
-    @app_commands.describe(bug="The bug you want to fix")
-    @app_commands.guild_only()
-    @owner_only()
-    async def debug(
-        self, interaction: Interaction, bug: Literal['Skin price not loading', 'Emoji not loading', 'Cache not loading']
-    ) -> None:
-
-        await interaction.response.defer(ephemeral=True)
-
-        response = ResponseLanguage(interaction.command.name, interaction.locale)
-
-        if bug == 'Skin price not loading':
-            # endpoint
-            endpoint = await self.get_endpoint(interaction.user.id, interaction.locale)
-
-            # fetch skin price
-            skin_price = endpoint.store_fetch_offers()
-            self.db.insert_skin_price(skin_price, force=True)
-
-        elif bug == 'Emoji not loading':
-            await setup_emoji(self.bot, interaction.guild, interaction.locale, force=True)
-
-        elif bug == 'Cache not loading':
-            self.funtion_reload_cache(force=True)
-
-        success = response.get('SUCCESS')
-        await interaction.followup.send(embed=Embed(success.format(bug=bug)))
-
 
 async def setup(bot: ValorantBot) -> None:
     await bot.add_cog(ValorantCog(bot))

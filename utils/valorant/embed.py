@@ -41,16 +41,15 @@ class GetEmbed:
 
         data = GetFormat.offer_format(offer)
 
-        duration = data.pop('duration')
+        _ = data.pop('duration')
 
-        description = store_esponse.format(
-            username=player, duration=format_relative(datetime.utcnow() + timedelta(seconds=duration))
-        )
+        description = store_esponse.format(username=player) + '\n'
+        for skin in data.values():
+            description += skin['name'] + '\n'
 
         embed = Embed(description)
         embeds = [embed]
-        [embeds.append(cls.__giorgio_embed(data[skin], bot)) for skin in data]
-
+        # [embeds.append(cls.__giorgio_embed(data[skin], bot)) for skin in data]
         return embeds
 
     # ---------- MISSION EMBED ---------- #

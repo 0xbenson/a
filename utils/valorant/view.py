@@ -232,7 +232,7 @@ class TwoFA_UI(ui.Modal, title='Two-factor authentication'):
 
                 login = await self.db.login(user_id, auth, self.interaction.locale)
                 if login['auth']:
-                    return await send_embed(f"{self.response.get('SUCCESS')} **{login['player']}!**")
+                    return await send_embed(f"{self.response.get('SUCCESS')}")
 
                 return await send_embed(login['error'])
 
@@ -245,8 +245,6 @@ class TwoFA_UI(ui.Modal, title='Two-factor authentication'):
         embed = discord.Embed(description='Oops! Something went wrong.', color=0xFD4554)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-
-# inspired by https://github.com/giorgi-o
 class BaseBundle(ui.View):
     def __init__(self, interaction: Interaction, entries: Dict, response: Dict) -> None:
         self.interaction: Interaction = interaction
